@@ -58,4 +58,24 @@ def recommend(request: RecommendRequest):
         for row in rows
     ]
     
-    
+@app.post('/similar/{movie_id}')
+def find_similar(movie_id : int, limit:int = 10):
+    #using cosine similarity SQL with querry vector as param
+
+
+    cur.execute(
+        """
+    SELECT tmdb_id, title, 
+    embedding <=> (SELECT embedding FROM movies WHERE tmdb_id = %s) AS distance
+    FROM movies
+    WHERE tmdb_id != %s
+    ORDER BY distance ASC
+    LIMIT %s;
+        """,
+
+        (movie_id, movie_id, limit)
+    )
+
+    rows = cur.fetchall()
+
+    return [MovieResult(tmdb_id=row[0], title=row[1], distance=row[2]) for row in rows] 
