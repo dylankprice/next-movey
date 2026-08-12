@@ -6,6 +6,8 @@ import psycopg2
 import psycopg2.extras
 from dotenv import load_dotenv
 load_dotenv() #get .env vars
+from pgvector.psycopg2 import register_vector
+
 
 #hyperparams
 TMDB_ACCESS_TOKEN = os.environ["TMDB_ACCESS_TOKEN"]
@@ -96,7 +98,9 @@ UPDATE movies SET embedding = %s WHERE tmdb_id = %s;
 
 
 def get_conn():
-    return psycopg2.connect(DATABASE_URL)
+    conn = psycopg2.connect(DATABASE_URL)
+    register_vector(conn)
+    return conn
 
 
 def ensure_schema(conn):
