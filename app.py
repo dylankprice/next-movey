@@ -1,13 +1,13 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, UploadFile
 import data_pull
+import numpy as np
+import letterboxd
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
-import psycopg2
 from sentence_transformers import SentenceTransformer
 import os
 from dotenv import load_dotenv
 load_dotenv()
-DATABASE_URL = os.environ["DATABASE_URL"]
 
 model = SentenceTransformer("all-MiniLM-L6-v2")
 
@@ -21,6 +21,7 @@ app = FastAPI(lifespan = lifespan)
 class RecommendRequest(BaseModel):
     query: str
     limit: int = 10
+    taste_vector: list[float] | None = None
 
 class MovieResult(BaseModel):
     tmdb_id: int
@@ -37,6 +38,14 @@ def recommend(request: RecommendRequest):
     #creating query vector from text
     query_vector = model.encode(request.query).tolist()
 
+    alpha = 0.5
+
+    if request.taste_vector:
+        taste_vector = np.array(request.taste_vector)
+        blended = alpha * taste_vector + (1-alpha) * query_vector
+    else:
+        blended = query_vector
+    combined_vector = blended.tolist()
     #using cosine similarity SQL with querry vector as param
     cur.execute(
         """
@@ -47,7 +56,7 @@ def recommend(request: RecommendRequest):
     LIMIT %s;
         """,
 
-        (query_vector, request.limit)
+        (combined_vector, request.limit)
     )
 
     rows = cur.fetchall()
@@ -77,3 +86,8 @@ def find_similar(movie_id : int, limit:int = 10):
     rows = cur.fetchall()
 
     return [MovieResult(tmdb_id=row[0], title=row[1], distance=row[2]) for row in rows] 
+
+@app.post("/upload_file/")
+async def upload_file(file: UploadFile):
+    taste_vector = letterboxd.compute_taste_vector(file.file, conn=conn)
+    return f'taste vector: {taste_vector.tolist()}'
