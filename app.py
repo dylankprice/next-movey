@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+import data_pull
 from pydantic import BaseModel
 from contextlib import asynccontextmanager
 import psycopg2
@@ -28,10 +29,7 @@ class MovieResult(BaseModel):
 
 
 
-def get_conn():
-    return psycopg2.connect(DATABASE_URL)
-
-conn = get_conn()
+conn = data_pull.get_conn()
 cur = conn.cursor() 
     
 @app.post('/recommend')
