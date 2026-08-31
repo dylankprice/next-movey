@@ -124,7 +124,7 @@ def find_similar(movie_id: int, limit: int = 10):
 async def upload_file(file: UploadFile):
     conn = get_pooled_conn()
     try:
-        taste_vector = letterboxd.compute_taste_vector(file.file, conn=conn)
+        taste_vector, watched_ids = letterboxd.compute_taste_vector(file.file, conn=conn)
     finally:
         release_pooled_conn(conn)
-    return {"taste_vector": taste_vector.tolist()}
+    return {"taste_vector": taste_vector.tolist(), "watched_ids": watched_ids}
