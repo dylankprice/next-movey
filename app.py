@@ -43,7 +43,7 @@ app = FastAPI(lifespan=lifespan)
 # Allow the local React dev server to call this API
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],  # vite's default dev port
+    allow_origins=["http://localhost:5173", "http://3.145.116.89"],  # vite dev + EC2 public IP
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
