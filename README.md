@@ -12,10 +12,11 @@ You describe what you're in the mood to watch in natural language and it searche
 - **Search:** the FastAPI backend embeds your search query the same way and finds nearest neighbors by vector distance.
 - **Personalization:** `letterboxd.py` fuzzy-matches your Letterboxd ratings against the database, then computes a weighted average embedding across your highly-rated movies and that becomes your "taste vector," blended 50/50 with whatever you search for.
 - **Frontend:** a small React app for searching, browsing results, and uploading the Letterboxd file.
+- **Deployment:** hosted on a single AWS EC2 instance — Nginx serves the built frontend and reverse-proxies API calls to FastAPI (run via Uvicorn under systemd), with Postgres/pgvector running on the same box.
+
 
 ## Known Improvements
 
 - Only has popular movies, top 3k, due to project size and scale
 - Structure is only built to work for that amount, scalability is weak
 - No persistence between sessions, single time use and repeated upload
-- Only local deployment
